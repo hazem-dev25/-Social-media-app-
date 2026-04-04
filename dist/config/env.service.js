@@ -1,0 +1,22 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.REFRESH_USER_JWT = exports.REFRESH_ADMIN_JWT = exports.USER_JWT = exports.ADMIN_JWT = exports.mood = exports.port = exports.url = void 0;
+const dotenv_1 = __importDefault(require("dotenv"));
+dotenv_1.default.config({ path: 'src/config/.env' });
+const url = process.env.DB_URL;
+exports.url = url;
+const port = process.env.PORT;
+exports.port = port;
+const mood = process.env.MODE;
+exports.mood = mood;
+const ADMIN_JWT = process.env.ADMIN_JWT;
+exports.ADMIN_JWT = ADMIN_JWT;
+const USER_JWT = process.env.USER_JWT;
+exports.USER_JWT = USER_JWT;
+const REFRESH_ADMIN_JWT = process.env.REFRESH_ADMIN_JWT;
+exports.REFRESH_ADMIN_JWT = REFRESH_ADMIN_JWT;
+const REFRESH_USER_JWT = process.env.REFRESH_USER_JWT;
+exports.REFRESH_USER_JWT = REFRESH_USER_JWT;
