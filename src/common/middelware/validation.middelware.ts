@@ -1,6 +1,6 @@
 import type { Request  , Response  , NextFunction} from "express"
 import { includes, ZodError, ZodType } from "zod"
-import { BadRequest } from "../utils/reseponce"
+
 
 
 type validationKey = keyof Request
@@ -18,7 +18,8 @@ export const validation = (schema: validationSchema )=> {
         }
     }
     if(validationError.length > 0){
-       throw  BadRequest({message: "validation error"})
+       res.status(400).json({message: 'validation error' , errors: validationError})
+       return;
     }
 
     next()

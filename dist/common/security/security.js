@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.decodeRefreshToken = exports.decodeToken = exports.generateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const reseponce_1 = require("../utils/reseponce");
+const application_exception_1 = require("../exception/application.exception");
 const env_service_1 = require("../../config/env.service");
 const generateToken = (userID) => {
     let signature;
@@ -23,7 +23,7 @@ const generateToken = (userID) => {
             audience = 'user';
             break;
         default:
-            throw (0, reseponce_1.unauthorized)({ message: 'invalid user role' });
+            throw new application_exception_1.UnauthorizedException("invalid user role");
     }
     const token = jsonwebtoken_1.default.sign({ id: userID._id }, signature, { expiresIn: '30m', audience: audience });
     const refreshToken = jsonwebtoken_1.default.sign({ id: userID._id }, refreshSignature, { expiresIn: '1y', audience });
@@ -40,7 +40,7 @@ const decodeToken = (decode, token) => {
             signature = env_service_1.USER_JWT;
             break;
         default:
-            throw (0, reseponce_1.unauthorized)({ message: "invalid user role" });
+            throw new application_exception_1.UnauthorizedException("invalid user role");
     }
     let verify = jsonwebtoken_1.default.verify(token, signature);
     return verify;
@@ -57,7 +57,7 @@ const decodeRefreshToken = (token) => {
             refreshSignature = env_service_1.REFRESH_USER_JWT;
             break;
         default:
-            throw (0, reseponce_1.unauthorized)({ message: "invalid user role" });
+            throw new application_exception_1.UnauthorizedException("invalid user role");
     }
     let verify_refresh = jsonwebtoken_1.default.verify(token, refreshSignature);
     return verify_refresh;

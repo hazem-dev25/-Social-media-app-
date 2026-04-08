@@ -1,9 +1,11 @@
 import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
 import { Gender, provider, role } from "../../common/enums/enums.service";
+import { iUser } from "../../common/interface/user.interface";
 
 
-const userSchema =  new mongoose.Schema({
+
+const userSchema =  new mongoose.Schema<iUser>({
     name: {
         type: String ,
         required: true
@@ -48,6 +50,8 @@ const userSchema =  new mongoose.Schema({
         type: Boolean ,
         default: false
     }
+} , {
+    timestamps: true
 }) 
 
 userSchema.pre("save", async function () {
@@ -55,4 +59,4 @@ userSchema.pre("save", async function () {
     this.password = await bcrypt.hash(this.password, 12)
 })
 
-export const userModel = mongoose.model('social' , userSchema)
+export const userModel = mongoose.model('User' , userSchema)

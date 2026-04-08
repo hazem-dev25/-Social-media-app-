@@ -50,10 +50,12 @@ const userSchema = new mongoose_1.default.Schema({
         type: Boolean,
         default: false
     }
+}, {
+    timestamps: true
 });
 userSchema.pre("save", async function () {
     if (!this.isModified("password"))
         return;
     this.password = await bcrypt_1.default.hash(this.password, 12);
 });
-exports.userModel = mongoose_1.default.model('social', userSchema);
+exports.userModel = mongoose_1.default.model('User', userSchema);

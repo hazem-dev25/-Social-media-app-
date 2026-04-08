@@ -1,15 +1,11 @@
 import jwt, { decode,  JwtPayload } from 'jsonwebtoken';
-import { unauthorized } from '../utils/reseponce';
+import { UnauthorizedException } from '../exception/application.exception';
 import { ADMIN_JWT, REFRESH_ADMIN_JWT, REFRESH_USER_JWT, USER_JWT } from '../../config/env.service';
 
 
 
-interface userid {
-    role: string
-    _id: string
-}
 
-export const generateToken = (userID: userid) => {
+export const generateToken = (userID: any) => {
   let signature: string | undefined 
   let refreshSignature: string | undefined
   let audience: string;
@@ -26,7 +22,7 @@ export const generateToken = (userID: userid) => {
       audience = 'user';
       break;
     default:
-      throw unauthorized({ message: 'invalid user role' });
+      throw  new UnauthorizedException("invalid user role");
   }
 
     const token = jwt.sign({ id: userID._id }, signature!, { expiresIn: '30m', audience: audience});
@@ -50,7 +46,7 @@ export const decodeToken = (decode: any ,token: any)=>{
         break;
 
         default:
-            throw unauthorized({message: "invalid user role"})
+            throw  new UnauthorizedException("invalid user role");
     
         }
         let verify = jwt.verify(token , signature!)
@@ -71,7 +67,7 @@ export const decodeRefreshToken = (token: any)=>{
         break;
 
         default:
-            throw unauthorized({message: "invalid user role"})
+            throw  new UnauthorizedException("invalid user role");
     
         }
         let verify_refresh = jwt.verify(token , refreshSignature!)

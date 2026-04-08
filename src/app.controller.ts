@@ -2,8 +2,8 @@ import { Express  } from 'express';
 import express from 'express';
 import {connectDB} from './database/connection'
 import { port } from './config/env.service';
-import {globalErrorHandler} from './common/utils/reseponce/index'
 import { userRouter } from './modules/auth.controller';
+import { globalErrorHandler } from './common/middelware/error.middelware';
 
 
 export const boostrap = async () =>{
@@ -13,10 +13,12 @@ export const boostrap = async () =>{
 
     app.use(userRouter)
 
+    app.use(globalErrorHandler)
+
     await connectDB()
     
-    app.use(globalErrorHandler)
+
     app.listen(port, () => {
-        console.log('Server is running on port 3000');
+        console.log(`Server is running on port ${port}`);
     });
 }

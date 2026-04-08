@@ -10,5 +10,6 @@ export interface signupDTO extends loginDTO{
 
 export interface loginDTO{
     email: string ,
-    password: string 
+    password: string ,
+    confirmPassword: string
 }
