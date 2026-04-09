@@ -1,4 +1,5 @@
-
+import { Types } from "mongoose";
+import { Request} from "express";
 export interface iUser {
     name: string ;
     age: number ;
@@ -8,4 +9,18 @@ export interface iUser {
     role: string ;
     provider: string ;
     isverify: boolean
+}
+
+
+export interface userToken {
+    _id: Types.ObjectId; 
+    role: string ;
+}
+
+
+
+export interface AuthenticatedRequest extends Request {
+    userid?: string | Types.ObjectId;
+    token?: string;
+    decode?: any
 }

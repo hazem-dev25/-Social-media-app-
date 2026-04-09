@@ -1,8 +1,7 @@
 
 export class ApplicationException extends Error {
-    constructor(message: string , public statusCode: number = 500, cause?: unknown){ {
+    constructor(message: string , public statusCode: number = 500, cause?: unknown){ 
         super(message , { cause })
-    }
 }}
 
 

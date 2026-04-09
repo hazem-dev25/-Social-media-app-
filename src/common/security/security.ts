@@ -1,12 +1,17 @@
 import jwt, { decode,  JwtPayload } from 'jsonwebtoken';
 import { UnauthorizedException } from '../exception/application.exception';
 import { ADMIN_JWT, REFRESH_ADMIN_JWT, REFRESH_USER_JWT, USER_JWT } from '../../config/env.service';
+import { userToken } from '../interface/user.interface';
 
 
 
 
-export const generateToken = (userID: any) => {
-  let signature: string | undefined 
+class Token {
+  constructor(){
+    
+  }
+  genarateToken(userID: userToken): string[] {
+      let signature: string | undefined 
   let refreshSignature: string | undefined
   let audience: string;
 
@@ -25,12 +30,14 @@ export const generateToken = (userID: any) => {
       throw  new UnauthorizedException("invalid user role");
   }
 
-    const token = jwt.sign({ id: userID._id }, signature!, { expiresIn: '30m', audience: audience});
-  const refreshToken = jwt.sign({ id: userID._id }, refreshSignature!, { expiresIn: '1y', audience });
+    const acsesstoken  = jwt.sign({ _id: userID._id }, signature!, { expiresIn: '30m', audience: audience});
+  const refreshToken = jwt.sign({ _id: userID._id }, refreshSignature!, { expiresIn: '1y', audience });
 
-  return { token, refreshToken };
-};
+  return [acsesstoken, refreshToken];
+  }
+}
 
+export default new Token()
 
 
 

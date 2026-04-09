@@ -1,36 +1,54 @@
 import { loginDTO, signupDTO} from "./auth.dto";
 import { userModel } from "../database/models/user.model";
 import { iUser } from "../common/interface/user.interface";
-import { HydratedDocument } from "mongoose";
-import { generateToken } from "../common/security/security";
+import { HydratedDocument} from "mongoose";
 import { BadRequestException } from "../common/exception/application.exception";
+import token from '../common/security/security'
+import { compare} from "bcrypt";
+
 
 
 
 class Authservice {
-    constructor() {
-    }
-  async signup(data: signupDTO): Promise<{ result: HydratedDocument<iUser>, token: string, refreshToken: string }> {
-      let isExist = await userModel.findOne({email: data.email})
-      if(isExist){
+  constructor() {
+}
+  async signup(data: signupDTO): Promise<HydratedDocument<iUser>> {
+    let isExist = await userModel.findOne({email: data.email})
+    if(isExist){
         throw new BadRequestException("email already exist")
-      }
-      if(data.password !== data.confirmPassword){
-        throw new BadRequestException("password and confirm password must be the same")
-      }
-      let result = await userModel.create(data)
-        let {token , refreshToken} = generateToken(result)
-        return {
-            result,
-            token ,
-            refreshToken    
-        }
-        
     }
 
-    login(data: loginDTO) : loginDTO{
-        
-        return data
+    if(data.password !== data.confirmPassword){
+        throw new BadRequestException("password and confirm password must be the same")
+    }
+   let newUser = await userModel.create(data)
+     
+     return newUser
+    }
+
+    async login(data: loginDTO) :  Promise<{ user:Partial<HydratedDocument<iUser>> , acsesstoken: string | undefined, refreshToken: string | undefined}> {
+    let user = await userModel.findOne({email: data.email}).select("+password")
+      
+    if(!user){
+        throw new BadRequestException("email not found")
+      }
+
+    const ismatch = await compare(data.password, user.password)
+    if(!ismatch){
+      throw new BadRequestException("password is incorrect")
+    } 
+
+    const [acsesstoken, refreshToken] = token.genarateToken( {_id:user._id,   role: user.role} )
+
+      return {user, acsesstoken, refreshToken}
+    }
+
+    async getAllUsersByID(id: string): Promise<HydratedDocument<iUser>> {
+      let user = await userModel.findById(id).select("-password")
+      if(!user){
+        throw new BadRequestException("user not found")
+      }
+      return user
     }
 }
 
