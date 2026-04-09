@@ -1,7 +1,8 @@
-import jwt, { decode,  JwtPayload } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
 import { UnauthorizedException } from '../exception/application.exception';
 import { ADMIN_JWT, REFRESH_ADMIN_JWT, REFRESH_USER_JWT, USER_JWT } from '../../config/env.service';
 import { userToken } from '../interface/user.interface';
+
 
 
 
@@ -35,48 +36,60 @@ class Token {
 
   return [acsesstoken, refreshToken];
   }
+
+  decodeToken(decode: { aud: string }, token: string){
+  let signature: string | undefined= undefined
+   switch(decode.aud){
+    case"admin": 
+    signature = ADMIN_JWT
+    break;
+   case"user": 
+     signature = USER_JWT
+    break;
+
+  default:
+  throw  new UnauthorizedException("invalid user role");
+    
 }
+  let verify = jwt.verify(token , signature!)
+  return verify
+}
+
+  decodeRefreshToken(token: string){
+    let  decode: any = jwt.decode(token)
+    let refreshSignature: string | undefined= undefined
+    switch(decode.aud){
+  case"admin": 
+    refreshSignature = REFRESH_ADMIN_JWT
+    break;
+
+  case"user": 
+    refreshSignature = REFRESH_USER_JWT
+   break;
+
+  default:
+  throw  new UnauthorizedException("invalid user role");
+    
+}
+   let verify_refresh = jwt.verify(token , refreshSignature!)
+   return verify_refresh
+  }
+
+}
+
+
+
+
+
 
 export default new Token()
 
 
 
-export const decodeToken = (decode: any ,token: any)=>{
-   let signature: string | undefined= undefined
-    switch(decode.aud){
-        case"admin": 
-        signature = ADMIN_JWT
-        break;
 
-        case"user": 
-        signature = USER_JWT
-        break;
-
-        default:
-            throw  new UnauthorizedException("invalid user role");
-    
-        }
-        let verify = jwt.verify(token , signature!)
-        return verify
-}
+   
 
 
 export const decodeRefreshToken = (token: any)=>{
-    let decode: any = jwt.decode(token)
-    let refreshSignature: string | undefined= undefined
-    switch(decode.aud){
-        case"admin": 
-        refreshSignature = REFRESH_ADMIN_JWT
-        break;
-
-        case"user": 
-        refreshSignature = REFRESH_USER_JWT
-        break;
-
-        default:
-            throw  new UnauthorizedException("invalid user role");
-    
-        }
-        let verify_refresh = jwt.verify(token , refreshSignature!)
-        return verify_refresh
+   
 }

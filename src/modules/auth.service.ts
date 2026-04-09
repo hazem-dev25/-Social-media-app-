@@ -5,7 +5,7 @@ import { HydratedDocument} from "mongoose";
 import { BadRequestException } from "../common/exception/application.exception";
 import token from '../common/security/security'
 import { compare} from "bcrypt";
-
+import { ADMIN_JWT, USER_JWT } from "../config/env.service";
 
 
 
@@ -50,6 +50,47 @@ class Authservice {
       }
       return user
     }
+
+    async updateUserByID(id: string , data: Partial<iUser>): Promise<HydratedDocument<iUser>> {
+      let {name , age , gender} = data
+      let user = await userModel.findByIdAndUpdate(id , {data: {name, age, gender}} , {new: true}).select("-password")
+      if(!user){
+      throw new BadRequestException("user not found")
+    }
+        return user
+
+}
+    async deleteUserByID(id: string): Promise<HydratedDocument<iUser>> {
+    let user = await userModel.findByIdAndDelete(id).select("-password")
+    if(!user){
+      throw new BadRequestException("user not found")
+    }
+    return user
+
+   }
+
+   async refreshToken(token: any): Promise<{ acsesstoken: string | undefined, refreshToken: string | undefined}> {
+    let decode: any =  token.decodeRefreshToken(token)
+    let signature: string | undefined
+    switch (decode.aud) {
+      case"user":
+      signature = USER_JWT
+      break;
+
+      case"admin":
+      signature = ADMIN_JWT
+      break;
+
+      default:
+        throw new BadRequestException("invalid refresh token")
+    }
+
+    const [acsesstoken, refreshToken] = token.genarateToken( {_id:decode._id,   role: decode.role} , signature )
+
+      return {acsesstoken, refreshToken}
+
+   }
+
 }
 
 export default new Authservice

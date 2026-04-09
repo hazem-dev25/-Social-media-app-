@@ -1,7 +1,7 @@
 import { NextFunction  , Request , Response} from 'express'
 import jwt from 'jsonwebtoken'
 import { UnauthorizedException } from '../exception/application.exception'
-import {decodeToken} from '../security/security'
+import token from '../security/security'
 import { AuthenticatedRequest } from '../interface/user.interface'
 
 
@@ -22,9 +22,9 @@ export const auth = (req: AuthenticatedRequest , res:Response, next: NextFunctio
       break;
     case "Bearer":
      
-    const decode = jwt.decode(token) as { _id: string, [key: string]: any }
+    const decode = jwt.decode(token) as { _id: string, aud: string, [key: string]: any }
 
-    const verify = decodeToken(decode, token) as { _id: string, [key: string]: any }
+    const verify = token.decodeToken(decode, token) as { _id: string,  [key: string]: any }
 
     
     req.userid = verify.id || verify._id
