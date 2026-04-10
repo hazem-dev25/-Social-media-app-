@@ -8,6 +8,7 @@ import { signupSchema } from "./auth.validaton";
 import { SuccessResponse } from "../common/exception/success.responce";
 import { auth } from "../common/middelware/auth";
 import { AuthenticatedRequest } from "../common/interface/user.interface";
+import { BadRequestException } from "../common/exception/application.exception";
 
 
 
@@ -43,7 +44,12 @@ userRouter.delete('/delete_user_by_id' , auth , async (req: AuthenticatedRequest
 })
 
 
-userRouter.post('/refresh_token' ,auth ,  async (req: AuthenticatedRequest , res: Response)=>{
-    let refreshToken = await authService.refreshToken(req.token as string)
+userRouter.post('/refresh_token' , async (req: Request , res: Response)=>{
+    let { authorization } = req.headers
+    if (!authorization) {
+        throw new BadRequestException("No token provided")
+    }
+    const token = authorization.split(" ")[1]
+    let refreshToken = await authService.refreshToken(token)
     SuccessResponse({res , data: refreshToken, message: "refresh token generated", status: 200})
 })

@@ -4,6 +4,7 @@ import { iUser } from "../common/interface/user.interface";
 import { HydratedDocument} from "mongoose";
 import { BadRequestException } from "../common/exception/application.exception";
 import token from '../common/security/security'
+import jwt from 'jsonwebtoken'
 import { compare} from "bcrypt";
 import { ADMIN_JWT, USER_JWT } from "../config/env.service";
 
@@ -69,8 +70,10 @@ class Authservice {
 
    }
 
-   async refreshToken(token: any): Promise<{ acsesstoken: string | undefined, refreshToken: string | undefined}> {
-    let decode: any =  token.decodeRefreshToken(token)
+   async refreshToken(Token: any): Promise<{ acsesstoken: string | undefined}> {
+    console.log("Received refresh token:", Token)
+    let decode: any =  token.decodeRefreshToken(Token)
+    console.log(decode.aud)
     let signature: string | undefined
     switch (decode.aud) {
       case"user":
@@ -85,10 +88,9 @@ class Authservice {
         throw new BadRequestException("invalid refresh token")
     }
 
-    const [acsesstoken, refreshToken] = token.genarateToken( {_id:decode._id,   role: decode.role} , signature )
+    const acsesstoken  = jwt.sign({ _id: decode._id }, signature!, { expiresIn: '30m', audience: decode.aud});
 
-      return {acsesstoken, refreshToken}
-
+      return {acsesstoken}
    }
 
 }

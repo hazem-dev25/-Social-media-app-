@@ -3,10 +3,6 @@ import { UnauthorizedException } from '../exception/application.exception';
 import { ADMIN_JWT, REFRESH_ADMIN_JWT, REFRESH_USER_JWT, USER_JWT } from '../../config/env.service';
 import { userToken } from '../interface/user.interface';
 
-
-
-
-
 class Token {
   constructor(){
     
@@ -78,18 +74,4 @@ class Token {
 }
 
 
-
-
-
-
 export default new Token()
-
-
-
-
-   
-
-
-export const decodeRefreshToken = (token: any)=>{
-   
-}

@@ -21,6 +21,6 @@ export interface userToken {
 
 export interface AuthenticatedRequest extends Request {
     userid?: string | Types.ObjectId;
-    token?: string;
+    Token?: string;
     decode?: any
 }
