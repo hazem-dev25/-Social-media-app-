@@ -7,6 +7,8 @@ import token from '../common/security/security'
 import jwt from 'jsonwebtoken'
 import { compare} from "bcrypt";
 import { ADMIN_JWT, USER_JWT } from "../config/env.service";
+import { emailEvent } from "../common/utils/SendEmail/email.event";
+
 
 
 
@@ -23,9 +25,29 @@ class Authservice {
         throw new BadRequestException("password and confirm password must be the same")
     }
    let newUser = await userModel.create(data)
+   
+   if(newUser){
+    emailEvent.emit("send_email" , {email: newUser.email , name: newUser.name})
+   }
      
      return newUser
     }
+
+
+    async verifyEmail(data: signupDTO): Promise<{verifyUser: HydratedDocument<iUser> | null}> {
+      let user = await userModel.findOne({email: data.email})
+      if(!user){
+        throw new BadRequestException("email not found")
+      }
+      if(user.isverify){
+        throw new BadRequestException("email already verified")
+      }else{
+        let verifyUser = await userModel.findByIdAndUpdate(user._id, {isverify: true}, {new: true})
+        emailEvent.emit("varify_email" , {email: user.email , name: user.name})
+        return {verifyUser: verifyUser}
+      }
+    }
+
 
     async login(data: loginDTO) :  Promise<{ user:Partial<HydratedDocument<iUser>> , acsesstoken: string | undefined, refreshToken: string | undefined}> {
     let user = await userModel.findOne({email: data.email}).select("+password")
@@ -40,8 +62,13 @@ class Authservice {
     } 
 
     const [acsesstoken, refreshToken] = token.genarateToken( {_id:user._id,   role: user.role} )
-
+    
       return {user, acsesstoken, refreshToken}
+    }
+
+    async getAllUsers(): Promise<HydratedDocument<iUser>[]> {
+      let allusers = await userModel.find().select("-password")
+      return allusers
     }
 
     async getAllUsersByID(id: string): Promise<HydratedDocument<iUser>> {

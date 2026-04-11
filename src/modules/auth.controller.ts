@@ -1,6 +1,5 @@
 import { Router } from "express";
 import  type { Request , Response } from 'express';
-import { Types } from "mongoose";
 export const userRouter = Router();
 import authService from "./auth.service";
 import { validation } from "../common/middelware/validation.middelware";
@@ -19,11 +18,22 @@ userRouter.post('/signup' , validation(signupSchema) , async (req: Request , res
 })
 
 
+userRouter.post('/verify_email' , async (req: Request , res: Response)=>{
+    let verify = await authService.verifyEmail(req.body)
+    SuccessResponse({res , message: "email verified successfully" , status: 200})
+})
+
+
 userRouter.post('/login' , async (req: Request , res: Response)=>{
     let userData = await authService.login(req.body)
     SuccessResponse({res , message: "login success" , data: userData , status: 200})
 })
 
+
+userRouter.get('/get_all_users' , async (req: Request , res: Response)=>{
+    let users = await authService.getAllUsers()
+    SuccessResponse({res , data: users, message: "get all users succ", status: 200})
+})
 
 userRouter.get('/get_user_by_id'  ,auth,  async (req: AuthenticatedRequest , res: Response)=>{
     console.log(req.userid)
