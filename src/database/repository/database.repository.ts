@@ -96,7 +96,7 @@ export class DatabaseRepository<TRowDocs> {
 
     findByIdAndUpdate(
         id: string,
-        data: Partial<TRowDocs>,
+        data: any,
         select?: Select,
         populate?: PopulateOptions | PopulateOptions[]
     ) {

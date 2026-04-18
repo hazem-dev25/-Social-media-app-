@@ -8,6 +8,7 @@ import { SuccessResponse } from "../common/exception/success.responce";
 import { auth } from "../common/middelware/auth";
 import { AuthenticatedRequest } from "../common/interface/user.interface";
 import { BadRequestException } from "../common/exception/application.exception";
+import { Url } from "url";
 
 
 
@@ -27,6 +28,18 @@ userRouter.post('/verify_email' , async (req: Request , res: Response)=>{
 userRouter.post('/login' , async (req: Request , res: Response)=>{
     let userData = await authService.login(req.body)
     SuccessResponse({res , message: "login success" , data: userData , status: 200})
+})
+
+
+userRouter.post('/forgetPassword' , auth , async (req:Request , res:Response)=>{
+    let userData = await authService.forgetPassword(req.body)
+    SuccessResponse({res , message: "check your email" , data: userData , status: 200})
+})
+
+
+userRouter.patch('/resetPassword' , auth , async (req:AuthenticatedRequest , res: Response)=>{
+    let userData = await authService.resetPassword(req.userid as string , req.body , `${req.protocol}:${req.host}`)
+    SuccessResponse({res, message: "your password is reset succsse" , data: userData , status: 201})
 })
 
 

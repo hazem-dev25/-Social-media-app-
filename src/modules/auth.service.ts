@@ -2,7 +2,7 @@ import { loginDTO, signupDTO, verifyDTO} from "./auth.dto";
 import { userModel } from "../database/models/user.model";
 import { iUser } from "../common/interface/user.interface";
 import { HydratedDocument, Model} from "mongoose";
-import { BadRequestException } from "../common/exception/application.exception";
+import { BadRequestException, NotFoundException } from "../common/exception/application.exception";
 import token from '../common/security/security'
 import jwt from 'jsonwebtoken'
 import { compare} from "bcrypt";
@@ -10,6 +10,7 @@ import { ADMIN_JWT, USER_JWT } from "../config/env.service";
 import { emailEvent } from "../common/utils/SendEmail/email.event";
 import { DatabaseRepository } from "../database/repository/database.repository";
 import redisService from "../common/service/redis.service";
+import { Url } from "url";
 
 
 
@@ -75,6 +76,40 @@ class Authservice {
     if (!user) throw new BadRequestException("email not found");
 
       return {user, acsesstoken, refreshToken}
+    }
+
+
+    async forgetPassword(data: loginDTO): Promise<HydratedDocument<iUser>>{
+      let user = await this.userRepository.findOne({email: data.email})
+      if(!user){
+     throw new  BadRequestException('user is not exist')
+      }
+      
+      emailEvent.emit('forget_password' , {email: user.email , userID: user._id , name: user.name})
+
+      return user
+    }
+
+
+    async resetPassword(id: string ,data: any , host: Url | any) : Promise<iUser>{
+      let loginUrl = `${host}/login`
+      let user = await this.userRepository.findOne({email: data.email})
+      if(!user){
+        throw new NotFoundException('user is not found')
+      }
+      if(!data.password || !data.code || !data.email){
+        throw new BadRequestException("code , password and email is required")
+      }
+
+      emailEvent.emit('resetPassword' ,{email: user.email , name:user.name , code: data.code , userID: user._id , host: loginUrl})
+
+      let updatePassword = await this.userRepository.findByIdAndUpdate(id ,{password: user.password})
+
+      if(!updatePassword){
+        throw new BadRequestException('password not updated')
+      }
+
+      return user
     }
 
     async getAllUsers(): Promise<HydratedDocument<iUser>[]> {

@@ -4,6 +4,7 @@ import redisService from "../../service/redis.service";
 import bcrypt from 'bcrypt'
 import { BadRequestException, NotFoundException } from "../../exception/application.exception";
 import { userModel } from "../../../database/models/user.model";
+import { httpUrl } from "zod";
 
 export const emailEvent = new EventEmitter();
 
@@ -185,11 +186,8 @@ let html = `
 
 emailEvent.on("varify_email", async(data) => {  
     const { email, code , userID , name} = data
-    console.log(code , userID)
-  let rediscode = await redisService.get(`key::${userID}`)
-  console.log(rediscode)
+  let rediscode = await redisService.get(`key::${userID}`)  
   let compareCode =  await bcrypt.compare(code , rediscode.toString())
-  console.log(compareCode)
   if(!compareCode){
     throw new NotFoundException("OTP is Expired")
   }else{
@@ -338,4 +336,221 @@ emailEvent.on("varify_email", async(data) => {
     `
 
     emailService.sendEmail(email, "Your Verification Code", html)
+})
+
+
+
+emailEvent.on('forget_password' , async (data) =>{
+
+  let {name , userID  ,email} = data
+  console.log(name)
+  const code = Math.floor(100000 + Math.random() * 900000).toString()
+  let Hashcode = await bcrypt.hash(code , 10)
+  await redisService.set({
+    key: `key::${userID}`,
+    value: Hashcode ,
+    ttl: 500
+  })
+
+const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    /* Modern Email Clients Support */
+    body { 
+      margin: 0; padding: 0; background-color: #0f172a; 
+      font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrapper {
+      width: 100%; table-layout: fixed; background-color: #0f172a; padding-bottom: 40px;
+    }
+    .main-card {
+      max-width: 500px; margin: 40px auto; background: linear-gradient(145deg, #1e293b, #0f172a);
+      border: 1px solid #334155; border-radius: 24px; overflow: hidden;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    }
+    .glow-bar {
+      height: 6px; background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+    }
+    .content { padding: 40px 30px; text-align: center; color: #ffffff; }
+    .icon-box {
+      width: 80px; height: 80px; margin: 0 auto 20px;
+      background: rgba(59, 130, 246, 0.1); border-radius: 20px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      font-size: 40px;
+    }
+    h1 { color: #ffffff; font-size: 26px; margin-bottom: 10px; font-weight: 800; letter-spacing: -0.5px; }
+    p { color: #94a3b8; font-size: 16px; line-height: 1.6; margin: 10px 0; }
+    
+    .otp-wrapper {
+      margin: 30px 0; padding: 25px;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 16px; border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .otp-code {
+      font-family: 'Courier New', monospace; font-size: 42px; font-weight: bold;
+      letter-spacing: 12px; color: #60a5fa; text-shadow: 0 0 15px rgba(96, 165, 250, 0.5);
+      /* centering adjustment for letter-spacing */
+      padding-left: 12px; 
+    }
+    
+    .timer {
+      display: inline-block; padding: 6px 14px; background: rgba(234, 179, 8, 0.1);
+      color: #fbbf24; border-radius: 100px; font-size: 12px; font-weight: bold;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .footer {
+      padding: 20px; background: rgba(0,0,0,0.2); text-align: center;
+      color: #475569; font-size: 11px; letter-spacing: 0.5px;
+    }
+    .security-note {
+      font-size: 13px; margin-top: 30px; color: #64748b;
+      border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-card">
+      <div class="glow-bar"></div>
+      <div class="content">
+        <div class="icon-box">🔐</div>
+        <h1>Identity Verification</h1>
+        <p>Hello <span style="color: #3b82f6; font-weight: bold;">${name}</span>,</p>
+        <p>We received a request to reset your password. Use the secure verification code below to proceed:</p>
+        
+        <div class="otp-wrapper">
+          <div class="otp-code">${code}</div>
+        </div>
+
+        <div class="timer">⏱️ Expires in 8 minutes</div>
+        
+        <div class="security-note">
+          If you didn't request this code, you can safely ignore this email. 
+          Your account security has not been compromised.
+        </div>
+      </div>
+      <div class="footer">
+        Secured by Intelligent Protection System &copy; ${new Date().getFullYear()}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+`
+
+ emailService.sendEmail(email , 'Forget Password' , html)
+  
+})
+
+
+emailEvent.on('resetPassword' , async (data) =>{
+  let {code , name , email ,userID , host} = data
+  let rediscode = await redisService.get(`key::${userID}`)  
+  let compareCode =  await bcrypt.compare(code , rediscode.toString())
+  if(!compareCode){
+    throw new NotFoundException("OTP is Expired")
+  }else{
+    let verifyUser = await userModel.findByIdAndUpdate(userID, {isverify: true}, {new: true})
+    if(!verifyUser){
+      throw new BadRequestException("failed to varify user")
+    }
+  }
+
+  const html = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { 
+      margin: 0; padding: 0; background-color: #050505; 
+      font-family: 'Inter', -apple-system, sans-serif;
+    }
+    .wrapper {
+      width: 100%; background-color: #050505; padding: 60px 0;
+    }
+    .main-card {
+      max-width: 480px; margin: 0 auto; background: #0f1115;
+      border: 1px solid #222; border-radius: 32px; overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+    }
+    .success-glow {
+      height: 4px; background: linear-gradient(90deg, #10b981, #34d399, #059669);
+    }
+    .content { padding: 50px 40px; text-align: center; }
+    .check-icon {
+      width: 72px; height: 72px; margin: 0 auto 30px;
+      background: rgba(16, 185, 129, 0.1);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      border: 1px solid rgba(16, 185, 129, 0.3); color: #10b981; font-size: 32px;
+    }
+    h1 { color: #ffffff; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 16px; }
+    p { color: #9ca3af; font-size: 15px; line-height: 1.7; margin-bottom: 30px; }
+    
+    .status-badge {
+      display: inline-block; padding: 8px 20px;
+      background: rgba(16, 185, 129, 0.1); color: #10b981;
+      border-radius: 100px; font-weight: 700; font-size: 13px;
+      text-transform: uppercase; letter-spacing: 1px; margin-bottom: 25px;
+    }
+
+    .info-box {
+      background: rgba(255, 255, 255, 0.03); border: 1px solid #222;
+      padding: 20px; border-radius: 16px; text-align: left;
+    }
+    .info-box p { margin: 0; font-size: 13px; color: #6b7280; }
+    
+    .button-login {
+      display: inline-block; margin-top: 30px; padding: 15px 30px;
+      background: #3b82f6; color: #ffffff; text-decoration: none;
+      border-radius: 12px; font-weight: 600; font-size: 15px;
+    }
+
+    .footer-brand {
+      padding: 25px; background: rgba(0,0,0,0.2);
+      text-align: center; color: #374151; font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="main-card">
+      <div class="success-glow"></div>
+      <div class="content">
+        <div class="check-icon">✓</div>
+        <div class="status-badge">Update Successful</div>
+        <h1>Password Changed</h1>
+        <p>Hi <strong>${name}</strong>,<br>Your password has been successfully updated. You can now use your new password to log in to your account.</p>
+        
+        <div class="info-box">
+          <p><strong>Action:</strong> Password Reset</p>
+          <p><strong>Status:</strong> Completed</p>
+          <p><strong>Time:</strong> ${new Date().toUTCString()}</p>
+        </div>
+
+        <a href= ${host} class="button-login">
+          Back to Login
+        </a>
+
+        <p style="margin-top: 40px; font-size: 12px; color: #4b5563;">
+          If you did not perform this action, please contact our security team immediately.
+        </p>
+      </div>
+      <div class="footer-brand">
+        Your Account Security is our Priority &copy; ${new Date().getFullYear()}
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+  emailService.sendEmail(email , 'resetPassword' , html)
 })
