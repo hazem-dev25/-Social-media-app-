@@ -13,3 +13,9 @@ export interface loginDTO{
     password: string ,
     confirmPassword: string
 }
+
+
+export interface verifyDTO{
+    email: string ,
+    code: string
+}

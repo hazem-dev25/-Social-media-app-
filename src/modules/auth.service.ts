@@ -1,22 +1,28 @@
-import { loginDTO, signupDTO} from "./auth.dto";
+import { loginDTO, signupDTO, verifyDTO} from "./auth.dto";
 import { userModel } from "../database/models/user.model";
 import { iUser } from "../common/interface/user.interface";
-import { HydratedDocument} from "mongoose";
+import { HydratedDocument, Model} from "mongoose";
 import { BadRequestException } from "../common/exception/application.exception";
 import token from '../common/security/security'
 import jwt from 'jsonwebtoken'
 import { compare} from "bcrypt";
 import { ADMIN_JWT, USER_JWT } from "../config/env.service";
 import { emailEvent } from "../common/utils/SendEmail/email.event";
+import { DatabaseRepository } from "../database/repository/database.repository";
+import redisService from "../common/service/redis.service";
 
 
 
 
 class Authservice {
+  private userModel: Model<iUser>
+  private userRepository: DatabaseRepository<iUser>
   constructor() {
+    this.userModel = userModel
+    this.userRepository = new DatabaseRepository(this.userModel)
 }
-  async signup(data: signupDTO): Promise<HydratedDocument<iUser>> {
-    let isExist = await userModel.findOne({email: data.email})
+  async signup(data: signupDTO): Promise<iUser> {
+    let isExist = await this.userRepository.findOne({email: data.email})
     if(isExist){
         throw new BadRequestException("email already exist")
     }
@@ -24,33 +30,31 @@ class Authservice {
     if(data.password !== data.confirmPassword){
         throw new BadRequestException("password and confirm password must be the same")
     }
-   let newUser = await userModel.create(data)
+   let newUser = await this.userRepository.create(data)
    
    if(newUser){
-    emailEvent.emit("send_email" , {email: newUser.email , name: newUser.name})
-   }
+  }
+  emailEvent.emit("send_email" , {email: newUser.email , name: newUser.name , userID: newUser._id})
      
      return newUser
     }
 
 
-    async verifyEmail(data: signupDTO): Promise<{verifyUser: HydratedDocument<iUser> | null}> {
-      let user = await userModel.findOne({email: data.email})
+    async verifyEmail(data: verifyDTO ): Promise<HydratedDocument<iUser>> {
+      let user = await this.userRepository.findOne({email: data.email})
       if(!user){
         throw new BadRequestException("email not found")
       }
       if(user.isverify){
-        throw new BadRequestException("email already verified")
-      }else{
-        let verifyUser = await userModel.findByIdAndUpdate(user._id, {isverify: true}, {new: true})
-        emailEvent.emit("varify_email" , {email: user.email , name: user.name})
-        return {verifyUser: verifyUser}
+        throw new BadRequestException("email already verified")  
       }
+      emailEvent.emit("varify_email" , {email: user.email , code: data.code , userID: user._id , name: user.name})
+      return  user
     }
 
 
     async login(data: loginDTO) :  Promise<{ user:Partial<HydratedDocument<iUser>> , acsesstoken: string | undefined, refreshToken: string | undefined}> {
-    let user = await userModel.findOne({email: data.email}).select("+password")
+    let user = await this.userRepository.findOne({email: data.email} , {password: 1 })
       
     if(!user){
         throw new BadRequestException("email not found")
@@ -67,7 +71,7 @@ class Authservice {
     }
 
     async getAllUsers(): Promise<HydratedDocument<iUser>[]> {
-      let allusers = await userModel.find().select("-password")
+      let allusers = await this.userRepository.find({}, {password:  0} )
       return allusers
     }
 
@@ -120,6 +124,15 @@ class Authservice {
       return {acsesstoken}
    }
 
+
+   async revokeToken(req: any){
+    let revokeKey = `key::${req._id}::${req.token}`
+   await redisService.set({
+    key: revokeKey ,
+    value: 1 ,
+    ttl : req.decode.iat + 30 * 60
+   })
+   }
 }
 
 export default new Authservice

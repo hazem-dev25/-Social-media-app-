@@ -8,7 +8,8 @@ export interface iUser {
     gender: string ;
     role: string ;
     provider: string ;
-    isverify: boolean
+    isverify: boolean 
+    _id: Types.ObjectId
 }
 
 

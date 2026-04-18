@@ -1,12 +1,13 @@
 import { NextFunction  , Request , Response} from 'express'
 import jwt from 'jsonwebtoken'
-import { UnauthorizedException } from '../exception/application.exception'
+import { NotFoundException, UnauthorizedException } from '../exception/application.exception'
 import { AuthenticatedRequest } from '../interface/user.interface'
 import token from '../security/security'
+import redisService from '../service/redis.service'
 
 
 
-export const auth = (req: AuthenticatedRequest , res:Response, next: NextFunction)=>{
+export const auth =  async (req: AuthenticatedRequest , res:Response, next: NextFunction)=>{
     let {authorization} = req.headers
     if(!authorization){
         throw new UnauthorizedException("you are not authorized")
@@ -24,7 +25,12 @@ export const auth = (req: AuthenticatedRequest , res:Response, next: NextFunctio
     const decode = jwt.decode(Token) as { _id: string, aud: string, [key: string]: any }
 
     const verify = token.decodeToken(decode, Token) as { _id: string,  [key: string]: any }
+    
+    let revoke =  await redisService.get(`key::${verify._id}::${token}`)
 
+    if(revoke){
+      throw new NotFoundException('user is alredy logout')
+    }
     req.userid = verify.id || verify._id
     req.Token = Token
     req.decode = decode

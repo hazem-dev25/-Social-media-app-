@@ -1,13 +1,23 @@
 import { EventEmitter } from "events";
 import emailService from "./email.service";
+import redisService from "../../service/redis.service";
+import bcrypt from 'bcrypt'
+import { BadRequestException, NotFoundException } from "../../exception/application.exception";
+import { userModel } from "../../../database/models/user.model";
 
 export const emailEvent = new EventEmitter();
 
 
 
-emailEvent.on("send_email", (data) => {
-  const { email, name } = data
+emailEvent.on("send_email",async (data) => {
+  const { email, name , userID} = data
   const code = Math.floor(100000 + Math.random() * 900000).toString()
+  let Hashcode = await bcrypt.hash(code , 10)
+  await redisService.set({
+    key: `key::${userID}`,
+    value: Hashcode ,
+    ttl: 500
+  })
 let html = `
 <!DOCTYPE html>
 <html>
@@ -173,20 +183,31 @@ let html = `
 })
 
 
-emailEvent.on("varify_email", (data) => {
-
-    const { email, name} = data
+emailEvent.on("varify_email", async(data) => {  
+    const { email, code , userID , name} = data
+    console.log(code , userID)
+  let rediscode = await redisService.get(`key::${userID}`)
+  console.log(rediscode)
+  let compareCode =  await bcrypt.compare(code , rediscode.toString())
+  console.log(compareCode)
+  if(!compareCode){
+    throw new NotFoundException("OTP is Expired")
+  }else{
+    let verifyUser = await userModel.findByIdAndUpdate(userID, {isverify: true}, {new: true})
+    if(!verifyUser){
+      throw new BadRequestException("failed to varify user")
+    }
+  }
 
     let html = `
-"🎉 Your Email is Verified!",
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Verified</title>
-</head>
-
+    <!DOCTYPE html>
+    <html>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verified</title>
+    </head>
+  
 <body style="
   margin:0;
   padding:0;
