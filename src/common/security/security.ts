@@ -12,6 +12,7 @@ class Token {
   let refreshSignature: string | undefined
   let audience: string;
 
+  console.log(userID.role)
   switch (userID.role) {
     case 'admin':
       signature = ADMIN_JWT;

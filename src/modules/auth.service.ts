@@ -54,19 +54,26 @@ class Authservice {
 
 
     async login(data: loginDTO) :  Promise<{ user:Partial<HydratedDocument<iUser>> , acsesstoken: string | undefined, refreshToken: string | undefined}> {
-    let user = await this.userRepository.findOne({email: data.email} , {password: 1 })
+    let userWithPassword = await this.userRepository.findOne({email: data.email} , {password: 1 , role: 1})
       
-    if(!user){
+    if(!userWithPassword){
         throw new BadRequestException("email not found")
       }
 
-    const ismatch = await compare(data.password, user.password)
+    const ismatch = await compare(data.password, userWithPassword.password)
     if(!ismatch){
       throw new BadRequestException("password is incorrect")
     } 
-
-    const [acsesstoken, refreshToken] = token.genarateToken( {_id:user._id,   role: user.role} )
+    const [acsesstoken, refreshToken] = token.genarateToken( {_id:userWithPassword._id,   role: userWithPassword.role} )
     
+    let user = await this.userRepository.findOne({ email: data.email}  , {password: 0} )
+    
+    if (!user){
+      throw new BadRequestException("email not found")
+    } 
+
+    if (!user) throw new BadRequestException("email not found");
+
       return {user, acsesstoken, refreshToken}
     }
 
@@ -125,12 +132,13 @@ class Authservice {
    }
 
 
-   async revokeToken(req: any){
-    let revokeKey = `key::${req._id}::${req.token}`
+   async revokeToken(data : any){
+    let revokeKey = `key::${data}`
+    console.log(revokeKey)
    await redisService.set({
     key: revokeKey ,
     value: 1 ,
-    ttl : req.decode.iat + 30 * 60
+    ttl : Date.now() + 30 * 60
    })
    }
 }

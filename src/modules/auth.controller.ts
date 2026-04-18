@@ -65,7 +65,7 @@ userRouter.post('/refresh_token' , async (req: Request , res: Response)=>{
 })
 
 
-userRouter.post('revokeToken' , auth , async (req: Request , res: Response )=>{
-    let token = await authService.revokeToken(req as any)
+userRouter.post('/revokeToken' , auth , async (req: AuthenticatedRequest , res: Response )=>{
+    let token = await authService.revokeToken(req.userid)
     SuccessResponse({res , message: "token revoked"  , data: token , status: 200})
 })
