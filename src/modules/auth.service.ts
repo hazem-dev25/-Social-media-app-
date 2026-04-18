@@ -134,7 +134,6 @@ class Authservice {
 
    async revokeToken(data : any){
     let revokeKey = `key::${data}`
-    console.log(revokeKey)
    await redisService.set({
     key: revokeKey ,
     value: 1 ,

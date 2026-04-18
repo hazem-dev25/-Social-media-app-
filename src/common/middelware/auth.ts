@@ -25,10 +25,9 @@ export const auth =  async (req: AuthenticatedRequest , res:Response, next: Next
     const decode = jwt.decode(Token) as { _id: string, aud: string, [key: string]: any }
 
     const verify = token.decodeToken(decode, Token) as { _id: string,  [key: string]: any }
-    console.log(verify._id)
-    console.log(Token , 'from token')
-    let revoke = await redisService.get(`key::${verify._id}`)
-    console.log(revoke)
+   
+    let revoke = await redisService.get(`key::${Token}`)
+    
     if(revoke){
       throw new NotFoundException('user is alredy logout')
     }
