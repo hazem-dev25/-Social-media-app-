@@ -4,7 +4,7 @@ import redisService from "../../service/redis.service";
 import bcrypt from 'bcrypt'
 import { BadRequestException, NotFoundException } from "../../exception/application.exception";
 import { userModel } from "../../../database/models/user.model";
-import { httpUrl } from "zod";
+
 
 export const emailEvent = new EventEmitter();
 
@@ -195,6 +195,8 @@ emailEvent.on("varify_email", async(data) => {
     if(!verifyUser){
       throw new BadRequestException("failed to varify user")
     }
+
+   await redisService.del(`key::${userID}`)
   }
 
     let html = `
@@ -461,6 +463,8 @@ emailEvent.on('resetPassword' , async (data) =>{
       throw new BadRequestException("failed to varify user")
     }
   }
+
+  await redisService.del(`key::${userID}`)
 
   const html = `
 <!DOCTYPE html>
