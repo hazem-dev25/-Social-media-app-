@@ -12,6 +12,15 @@ export interface iUser {
     _id: Types.ObjectId
 }
 
+export interface Aichat {
+    prompt : string 
+    message: string
+    media?: string | any
+    status: string
+    userid: Types.ObjectId | string
+}
+
+
 
 export interface userToken {
     _id: Types.ObjectId; 
