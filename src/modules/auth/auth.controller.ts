@@ -2,13 +2,12 @@ import { Router } from "express";
 import  type { Request , Response } from 'express';
 export const userRouter = Router();
 import authService from "./auth.service";
-import { validation } from "../common/middelware/validation.middelware";
-import { signupSchema } from "./auth.validaton";
-import { SuccessResponse } from "../common/exception/success.responce";
-import { auth } from "../common/middelware/auth";
-import { AuthenticatedRequest } from "../common/interface/user.interface";
-import { BadRequestException } from "../common/exception/application.exception";
-import { Url } from "url";
+import { validation } from "../../common/middelware/validation.middelware";
+import { loginSchema, signupSchema } from "./auth.validaton";
+import { SuccessResponse } from "../../common/exception/success.responce";
+import { auth } from "../../common/middelware/auth";
+import { AuthenticatedRequest } from "../../common/interface/user.interface";
+import { BadRequestException } from "../../common/exception/application.exception";
 
 
 
@@ -25,7 +24,7 @@ userRouter.post('/verify_email' , async (req: Request , res: Response)=>{
 })
 
 
-userRouter.post('/login' , async (req: Request , res: Response)=>{
+userRouter.post('/login' , validation(loginSchema) ,async (req: Request , res: Response)=>{
     let userData = await authService.login(req.body)
     SuccessResponse({res , message: "login success" , data: userData , status: 200})
 })
@@ -82,3 +81,11 @@ userRouter.post('/revokeToken' , auth , async (req: AuthenticatedRequest , res: 
     let token = await authService.revokeToken(req.Token)
     SuccessResponse({res , message: "token revoked"  , data: token , status: 200})
 })
+
+
+userRouter.post('/view_profile' , auth,  async(req: AuthenticatedRequest , res: Response)=>{
+    let view = await authService.view_pofile(req.userid as string)
+    SuccessResponse({res , message: "here all views " , data: view , status: 200})
+})
+
+

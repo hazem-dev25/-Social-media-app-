@@ -2,9 +2,9 @@ import { Express  } from 'express';
 import express from 'express';
 import {connectDB} from './database/connection'
 import { port } from './config/env.service';
-import { userRouter } from './modules/auth.controller';
+import { userRouter } from './modules/auth/auth.controller';
 import { globalErrorHandler } from './common/middelware/error.middelware';
-import { Ai } from './modules/ai.controller';
+import { Ai } from './modules/AI_chat/ai.controller';
 import { connectionRedis } from './common/service/redis';
 
 

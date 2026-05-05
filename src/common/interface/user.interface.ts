@@ -1,15 +1,17 @@
 import { Types } from "mongoose";
 import { Request} from "express";
 export interface iUser {
-    name: string ;
-    age: number ;
-    email: string ;
-    password: string ;
-    gender: string ;
-    role: string ;
-    provider: string ;
+    name: string 
+    age: number 
+    email: string 
+    password: string 
+    gender: string 
+    role: string 
+    provider: string 
     isverify: boolean 
-    _id: Types.ObjectId
+    _id: Types.ObjectId 
+    view_profile: number
+    Reactions: string
 }
 
 export interface Aichat {

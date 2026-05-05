@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import bcrypt from 'bcrypt'
 import { Gender, provider, role } from "../../common/enums/enums.service";
 import { iUser } from "../../common/interface/user.interface";
+import emailService from "../../common/utils/SendEmail/email.service";
 
 
 
@@ -49,7 +50,11 @@ const userSchema =  new mongoose.Schema<iUser>({
     isverify: {
         type: Boolean ,
         default: false
-    }
+    } ,
+    view_profile: {
+        type: Number ,
+        default: 0
+    } 
 } , {
     timestamps: true
 }) 
@@ -59,4 +64,8 @@ userSchema.pre("save", async function () {
     this.password = await bcrypt.hash(this.password, 12)
 })
 
+
+userSchema.post("save", async function (doc) {
+    await emailService.sendEmail(doc.email , "welcome to our app" , "thank you for registering in our app")
+})
 export const userModel = mongoose.model('User' , userSchema)

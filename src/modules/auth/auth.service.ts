@@ -1,16 +1,17 @@
 import { loginDTO, signupDTO, verifyDTO} from "./auth.dto";
-import { userModel } from "../database/models/user.model";
-import { iUser } from "../common/interface/user.interface";
+import { userModel } from "../../database/models/user.model";
+import { iUser } from "../../common/interface/user.interface";
 import { HydratedDocument, Model} from "mongoose";
-import { BadRequestException, NotFoundException } from "../common/exception/application.exception";
-import token from '../common/security/security'
+import { BadRequestException, NotFoundException } from "../../common/exception/application.exception";
+import token from '../../common/security/security'
 import jwt from 'jsonwebtoken'
 import { compare} from "bcrypt";
-import { ADMIN_JWT, USER_JWT } from "../config/env.service";
-import { emailEvent } from "../common/utils/SendEmail/email.event";
-import { DatabaseRepository } from "../database/repository/database.repository";
-import redisService from "../common/service/redis.service";
+import { ADMIN_JWT, USER_JWT } from "../../config/env.service";
+import { emailEvent } from "../../common/utils/SendEmail/email.event";
+import { DatabaseRepository } from "../../database/repository/database.repository";
+import redisService from "../../common/service/redis.service";
 import { Url } from "url";
+
 
 
 
@@ -175,6 +176,15 @@ class Authservice {
     ttl : Date.now() + 30 * 60
    })
    }
+
+   async view_pofile(id: string): Promise<Partial<HydratedDocument<iUser>>>{
+    let updateView = await this.userRepository.findByIdAndUpdate(id , {$inc: {view_profile: 1}} )
+     if(!updateView){
+      throw new NotFoundException("user is not found")
+     }
+     return updateView
+   }
+
 }
 
 export default new Authservice

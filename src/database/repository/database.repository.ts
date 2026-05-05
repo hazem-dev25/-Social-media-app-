@@ -54,7 +54,7 @@ export class DatabaseRepository<TRowDocs> {
     }
 
     findOne(
-        filter: Partial<TRowDocs>,
+        filter: any,
         select?: Select,
         populate?: PopulateOptions | PopulateOptions[],
         sort?: Sort

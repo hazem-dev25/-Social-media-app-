@@ -1,12 +1,12 @@
 import { Groq } from 'groq-sdk'
 import Bytez from "bytez.js";
 import fs from 'fs'
-import { groq_api, image_api } from '../config/env.service'
-import { AiModel } from '../database/models/Aichat'
+import { groq_api, image_api } from '../../config/env.service'
+import { AiModel } from '../../database/models/Aichat'
 import { Model} from 'mongoose'
-import { Aichat } from '../common/interface/user.interface'
-import { DatabaseRepository } from '../database/repository/database.repository'
-import { BadRequestException } from '../common/exception/application.exception'
+import { Aichat } from '../../common/interface/user.interface'
+import { DatabaseRepository } from '../../database/repository/database.repository'
+import { BadRequestException } from '../../common/exception/application.exception'
 
 
 const groq = new Groq({ apiKey: groq_api })
@@ -111,7 +111,7 @@ const intent = JSON.parse(cleaned)
         const aiResponse = chatCompletion.choices[0].message.content
 
         groqDB.push({ prompt, message: aiResponse })
-        if (groqDB.length > 10) groqDB.shift()
+        if (groqDB.length > 30) groqDB.shift()
 
         const AiMemory = await this.AiRepository.create({
             prompt,

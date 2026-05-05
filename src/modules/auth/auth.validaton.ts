@@ -14,3 +14,16 @@ export const signupSchema  = {
             code: 'custom',
             message: "Passwords don't match",
 })}})}
+
+
+export const loginSchema = {
+    body: z.strictObject({
+        email: z.email().trim(),
+        password: z.string().min(8).max(15) ,
+        confirmPassword: z.string().min(8).max(15)
+    }).superRefine(({ password, confirmPassword }, ctx) => {
+        if (password !== confirmPassword) {
+          ctx.addIssue({
+            code: 'custom',
+            message: "Passwords don't match",
+})}})}
