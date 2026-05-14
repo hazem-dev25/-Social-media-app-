@@ -3,3 +3,5 @@ src/config
 .env*
 dist
 public
+uploads
+socialmediaapp-5d45d-firebase-adminsdk-fbsvc-36b9a1fdbb.json

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { UnauthorizedException } from '../exception/application.exception';
 import { ADMIN_JWT, REFRESH_ADMIN_JWT, REFRESH_USER_JWT, USER_JWT } from '../../config/env.service';
-import { userToken } from '../interface/user.interface';
+import { userToken } from '../interface/auth.interface';
 
 class Token {
   constructor(){

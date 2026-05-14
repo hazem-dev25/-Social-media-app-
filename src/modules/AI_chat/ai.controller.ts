@@ -1,9 +1,9 @@
 import express, { Request, Router } from 'express'
-import { auth } from '../common/middelware/auth'
+import { auth } from '../../common/middelware/auth'
 import { Response } from 'express'
-import { SuccessResponse } from '../common/exception/success.responce'
+import { SuccessResponse } from '../../common/exception/success.responce'
 import aiService from './ai.service'
-import { AuthenticatedRequest } from '../common/interface/user.interface'
+import { AuthenticatedRequest } from '../../common/interface/auth.interface'
 
 export const Ai = Router()
 

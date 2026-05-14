@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { Aichat } from "../../common/interface/user.interface";
+import { Aichat } from "../../common/interface/auth.interface";
 
 
 const AiChatSchema = new mongoose.Schema<Aichat>({

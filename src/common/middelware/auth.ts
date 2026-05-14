@@ -1,7 +1,7 @@
 import { NextFunction  , Request , Response} from 'express'
 import jwt from 'jsonwebtoken'
 import { NotFoundException, UnauthorizedException } from '../exception/application.exception'
-import { AuthenticatedRequest } from '../interface/user.interface'
+import { AuthenticatedRequest } from '../interface/auth.interface'
 import token from '../security/security'
 import redisService from '../service/redis.service'
 

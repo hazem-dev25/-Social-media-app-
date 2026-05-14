@@ -1,6 +1,6 @@
 import { loginDTO, signupDTO, verifyDTO} from "./auth.dto";
-import { userModel } from "../../database/models/user.model";
-import { iUser } from "../../common/interface/user.interface";
+import { authModel } from "../../database/models/auth.model";
+import { iAuth } from "../../common/interface/auth.interface";
 import { HydratedDocument, Model} from "mongoose";
 import { BadRequestException, NotFoundException } from "../../common/exception/application.exception";
 import token from '../../common/security/security'
@@ -17,13 +17,13 @@ import { Url } from "url";
 
 
 class Authservice {
-  private userModel: Model<iUser>
-  private userRepository: DatabaseRepository<iUser>
+  private authModel: Model<iAuth>
+  private userRepository: DatabaseRepository<iAuth>
   constructor() {
-    this.userModel = userModel
-    this.userRepository = new DatabaseRepository(this.userModel)
+    this.authModel = authModel
+    this.userRepository = new DatabaseRepository(this.authModel)
 }
-  async signup(data: signupDTO): Promise<iUser> {
+  async signup(data: signupDTO): Promise<iAuth> {
     let isExist = await this.userRepository.findOne({email: data.email})
     if(isExist){
         throw new BadRequestException("email already exist")
@@ -42,7 +42,7 @@ class Authservice {
     }
 
 
-    async verifyEmail(data: verifyDTO ): Promise<HydratedDocument<iUser>> {
+    async verifyEmail(data: verifyDTO ): Promise<HydratedDocument<iAuth>> {
       let user = await this.userRepository.findOne({email: data.email})
       if(!user){
         throw new BadRequestException("email not found")
@@ -55,7 +55,7 @@ class Authservice {
     }
 
 
-    async login(data: loginDTO) :  Promise<{ user:Partial<HydratedDocument<iUser>> , acsesstoken: string | undefined, refreshToken: string | undefined}> {
+    async login(data: loginDTO) :  Promise<{ user:Partial<HydratedDocument<iAuth>> , acsesstoken: string | undefined, refreshToken: string | undefined}> {
     let userWithPassword = await this.userRepository.findOne({email: data.email} , {password: 1 , role: 1})
       
     if(!userWithPassword){
@@ -80,7 +80,7 @@ class Authservice {
     }
 
 
-    async forgetPassword(data: loginDTO): Promise<HydratedDocument<iUser>>{
+    async forgetPassword(data: loginDTO): Promise<HydratedDocument<iAuth>>{
       let user = await this.userRepository.findOne({email: data.email})
       if(!user){
      throw new  BadRequestException('user is not exist')
@@ -92,7 +92,7 @@ class Authservice {
     }
 
 
-    async resetPassword(id: string ,data: any , host: Url | any) : Promise<iUser>{
+    async resetPassword(id: string ,data: any , host: Url | any) : Promise<iAuth>{
       let loginUrl = `${host}/login`
       let user = await this.userRepository.findOne({email: data.email})
       if(!user){
@@ -101,42 +101,42 @@ class Authservice {
       if(!data.password || !data.code || !data.email){
         throw new BadRequestException("code , password and email is required")
       }
-
-      emailEvent.emit('resetPassword' ,{email: user.email , name:user.name , code: data.code , userID: user._id , host: loginUrl})
-
       let updatePassword = await this.userRepository.findByIdAndUpdate(id ,{password: user.password})
 
       if(!updatePassword){
         throw new BadRequestException('password not updated')
+        
       }
+      
+      emailEvent.emit('resetPassword' ,{email: user.email , name:user.name , code: data.code , userID: user._id , host: loginUrl})
 
       return user
     }
 
-    async getAllUsers(): Promise<HydratedDocument<iUser>[]> {
+    async getAllUsers(): Promise<HydratedDocument<iAuth>[]> {
       let allusers = await this.userRepository.find({}, {password:  0} )
       return allusers
     }
 
-    async getAllUsersByID(id: string): Promise<HydratedDocument<iUser>> {
-      let user = await userModel.findById(id).select("-password")
+    async getAllUsersByID(id: string): Promise<HydratedDocument<iAuth>> {
+      let user = await authModel.findById(id).select("-password")
       if(!user){
         throw new BadRequestException("user not found")
       }
       return user
     }
 
-    async updateUserByID(id: string , data: Partial<iUser>): Promise<HydratedDocument<iUser>> {
+    async updateUserByID(id: string , data: Partial<iAuth>): Promise<HydratedDocument<iAuth>> {
       let {name , age , gender} = data
-      let user = await userModel.findByIdAndUpdate(id , {data: {name, age, gender}} , {new: true}).select("-password")
+      let user = await authModel.findByIdAndUpdate(id , {data: {name, age, gender}} , {new: true}).select("-password")
       if(!user){
       throw new BadRequestException("user not found")
     }
         return user
 
 }
-    async deleteUserByID(id: string): Promise<HydratedDocument<iUser>> {
-    let user = await userModel.findByIdAndDelete(id).select("-password")
+    async deleteUserByID(id: string): Promise<HydratedDocument<iAuth>> {
+    let user = await authModel.findByIdAndDelete(id).select("-password")
     if(!user){
       throw new BadRequestException("user not found")
     }
@@ -177,8 +177,8 @@ class Authservice {
    })
    }
 
-   async view_pofile(id: string): Promise<Partial<HydratedDocument<iUser>>>{
-    let updateView = await this.userRepository.findByIdAndUpdate(id , {$inc: {view_profile: 1}} )
+   async view_pofile(id: string): Promise<Partial<HydratedDocument<iAuth>>>{
+    let updateView = await this.userRepository.findByIdAndUpdate(id , {$inc: {view_profile: 1}}) 
      if(!updateView){
       throw new NotFoundException("user is not found")
      }

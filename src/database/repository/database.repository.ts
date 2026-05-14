@@ -100,7 +100,7 @@ export class DatabaseRepository<TRowDocs> {
         select?: Select,
         populate?: PopulateOptions | PopulateOptions[]
     ) {
-        let doc = this.model.findByIdAndUpdate(id, data, { new: true });
+        let doc = this.model.findByIdAndUpdate(id, data, { after: true });
 
         if (select) {
             doc = doc.select(select);

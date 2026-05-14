@@ -3,7 +3,7 @@ import emailService from "./email.service";
 import redisService from "../../service/redis.service";
 import bcrypt from 'bcrypt'
 import { BadRequestException, NotFoundException } from "../../exception/application.exception";
-import { userModel } from "../../../database/models/user.model";
+import { authModel } from "../../../database/models/auth.model";
 
 
 export const emailEvent = new EventEmitter();
@@ -191,7 +191,7 @@ emailEvent.on("varify_email", async(data) => {
   if(!compareCode){
     throw new NotFoundException("OTP is Expired")
   }else{
-    let verifyUser = await userModel.findByIdAndUpdate(userID, {isverify: true}, {new: true})
+    let verifyUser = await authModel.findByIdAndUpdate(userID, {isverify: true}, {new: true})
     if(!verifyUser){
       throw new BadRequestException("failed to varify user")
     }
@@ -457,13 +457,7 @@ emailEvent.on('resetPassword' , async (data) =>{
   let compareCode =  await bcrypt.compare(code , rediscode.toString())
   if(!compareCode){
     throw new NotFoundException("OTP is Expired")
-  }else{
-    let verifyUser = await userModel.findByIdAndUpdate(userID, {isverify: true}, {new: true})
-    if(!verifyUser){
-      throw new BadRequestException("failed to varify user")
-    }
   }
-
   await redisService.del(`key::${userID}`)
 
   const html = `
