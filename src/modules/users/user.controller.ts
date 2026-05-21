@@ -15,6 +15,7 @@ userRouter.get('/get_user_profile' , auth , async (req: AuthenticatedRequest ,re
 })
 
 userRouter.post('/create_user' , auth ,multerSend({custompath: "profile_pics"}).single('image') , async (req: AuthenticatedRequest ,res:Response)=>{
+    req.body.userid = req.userid as string
     let createdUser = await userService.createUser(req.body , req.file )
     SuccessResponse({res , message: 'user created successfully' , data: createdUser , status: 201})
 })

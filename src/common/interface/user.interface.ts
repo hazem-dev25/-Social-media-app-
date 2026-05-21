@@ -1,8 +1,11 @@
+import { Types } from "mongoose"
+
 export interface iUser {
     username: string 
     age: number 
     image?: string 
     about?: string 
-    id: string
+    userid: string
     Tokens?: string[]
+    friends?: Types.ObjectId[]
 }

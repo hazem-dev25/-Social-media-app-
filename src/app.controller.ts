@@ -7,6 +7,7 @@ import { globalErrorHandler } from './common/middelware/error.middelware';
 import { Ai } from './modules/AI_chat/ai.controller';
 import { connectionRedis } from './common/service/redis';
 import {userRouter} from './modules/users/user.controller'
+import {postRouter} from './modules/posts/post.controller'
 
 
 
@@ -23,6 +24,7 @@ export const boostrap = async () =>{
     app.use(Ai)
     app.use(authRouter)
     app.use(userRouter)
+    app.use(postRouter)
     app.use(globalErrorHandler)
 
     app.listen(port, () => {

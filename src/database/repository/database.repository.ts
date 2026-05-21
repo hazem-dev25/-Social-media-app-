@@ -21,7 +21,7 @@ export class DatabaseRepository<TRowDocs> {
     }
 
     find(
-        filter: Partial<TRowDocs> = {},
+        filter: Partial<any> = {},
         select?: Select,
         populate?: PopulateOptions | PopulateOptions[],
         sort?: Sort,

@@ -5,8 +5,8 @@ import {PostVisibility} from '../enums/posts.enums'
 
 export interface IPost {
     userid: Types.ObjectId | iUser;
-    content?: string;
-    attachments?: string[];
+    content?: string | undefined;
+    attachments?: string[] | undefined; 
     tags?: string[] | iUser[];
     likes: string[] | iUser[];
     createdAt: Date;

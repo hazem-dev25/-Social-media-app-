@@ -31,11 +31,10 @@ export const auth =  async (req: AuthenticatedRequest , res:Response, next: Next
     if(revoke){
       throw new NotFoundException('user is alredy logout')
     }
-    req.userid = verify.id || verify._id
+    req.userid = verify._id
     req.Token = Token
     req.decode = decode
-    
-
+ 
     break;
   }
   next()
