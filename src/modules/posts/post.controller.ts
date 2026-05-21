@@ -24,3 +24,9 @@ postRouter.get('/getPosts/:userid' , auth ,async (req: Request , res: Response)=
     let posts = await postService.getPosts(req.params.userid as string)
     SuccessResponse({res ,message: 'Posts retrieved successfully' ,data: posts ,status: 200})
 })
+
+
+postRouter.delete('/deletePost/:id' , auth , async (req: AuthenticatedRequest, res: Response)=>{
+    let post = await postService.deletePost(req.params.id as string , req.userid as string)
+    SuccessResponse({res , message: 'post deleted succ' , data: post , status: 200})
+})

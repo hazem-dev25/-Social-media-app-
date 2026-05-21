@@ -1,12 +1,13 @@
-import { HydrateOptions, Model } from "mongoose";
+import { HydratedDocument, HydrateOptions, Model } from "mongoose";
 import { postModel } from "../../database/models/posts";
 import { userModel } from "../../database/models/user.model";
 import { IPost } from "../../common/interface/posts.interface";
 import { DatabaseRepository } from "../../database/repository/database.repository";
 import { iUser } from "../../common/interface/user.interface";
-import { NotFoundException } from "../../common/exception/application.exception";
-import { AuthenticatedRequest } from "../../common/interface/auth.interface";
+import { BadRequestException, NotFoundException } from "../../common/exception/application.exception";
+import { AuthenticatedRequest, iAuth } from "../../common/interface/auth.interface";
 import { PostVisibility } from "../../common/enums/posts.enums";
+import { authModel } from "../../database/models/auth.model";
 
 
 
@@ -15,10 +16,12 @@ class postService {
     private postModel : Model<IPost>
     public postRepository : DatabaseRepository<IPost>
     public userRepository : DatabaseRepository<iUser>
+    public authRepository : DatabaseRepository<iAuth>
     constructor(){
         this.postModel = postModel
         this.postRepository = new DatabaseRepository(this.postModel)
         this.userRepository = new DatabaseRepository(userModel)
+        this.authRepository = new DatabaseRepository(authModel)
     }
 
     async createPost(req: AuthenticatedRequest): Promise<IPost>{
@@ -102,6 +105,25 @@ class postService {
         }
         return posts
     }
+
+
+   async deletePost(id: string , userid : string){
+    let auth = await this.authRepository.findById(userid)
+    
+    if(!auth){
+        throw new NotFoundException('auth is not found')
+    }
+
+    if(auth.role == 'admin'){
+        throw new BadRequestException('sorry user only can deleted')
+    }else{  
+    let post = await this.postRepository.findByIdAndDelete(id)
+    if(!post){
+        throw new NotFoundException('post is not found')
+    }
+    return post
+    
+}}
 }
 
 export default new postService()
