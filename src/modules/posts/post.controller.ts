@@ -30,3 +30,8 @@ postRouter.delete('/deletePost/:id' , auth , async (req: AuthenticatedRequest, r
     let post = await postService.deletePost(req.params.id as string , req.userid as string)
     SuccessResponse({res , message: 'post deleted succ' , data: post , status: 200})
 })
+
+postRouter.patch('/updatePost/:id' , auth , async (req:AuthenticatedRequest , res:Response)=>{
+    let post = await postService.updatePost(req.userid as string , req.params.id as string, req.body)
+    SuccessResponse({res , message: "post updated succ" , data: post , status: 200})
+})

@@ -124,6 +124,27 @@ class postService {
     return post
     
 }}
+
+async updatePost(authID: string , postID: string , data: any): Promise<HydratedDocument<IPost>>{
+    let auth = await this.authRepository.findById(authID)
+
+    if(!auth){
+        throw new NotFoundException("you have to be user to update the post")
+    }
+
+    let {content , tags} = data
+
+    let post = await this.postRepository.findByIdAndUpdate(postID , {data: content , tags})
+    
+    if(!post){
+        throw new NotFoundException('post is not found')
+    }
+
+    return post
+    
+}
+
+
 }
 
 export default new postService()

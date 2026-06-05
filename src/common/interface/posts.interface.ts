@@ -7,6 +7,7 @@ export interface IPost {
     userid: Types.ObjectId | iUser;
     content?: string | undefined;
     attachments?: string[] | undefined; 
+    comments?: string | undefined
     tags?: string[] | iUser[];
     likes: string[] | iUser[];
     createdAt: Date;
