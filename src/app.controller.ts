@@ -9,6 +9,8 @@ import { connectionRedis } from "./common/service/redis";
 import { userRouter } from "./modules/users/user.controller";
 import { commentRouter } from "./modules/comments/comments.controller";
 import { postRouter } from "./modules/posts/post.controller";
+import { createHandler } from "graphql-http/lib/use/express";
+import { schema } from "./modules/GraphQl";
 
 export const boostrap = async () => {
   const app: Express = express();
@@ -25,9 +27,8 @@ export const boostrap = async () => {
   app.use(commentRouter);
   app.use(globalErrorHandler);
 
-  
+  app.use("/qraphql", createHandler({ schema: schema }));
 
-  
   app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
