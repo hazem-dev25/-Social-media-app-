@@ -13,3 +13,4 @@ export const argsUpdateUser = {
 export const argsDeleteUser = {
     userid:{type: new GraphQLNonNull(GraphQLString)}
 }
+

@@ -7,7 +7,7 @@ import { url } from "../config/env.service";
 
 export const connectDB = async () => {
     mongoose.connect(url).then(()=>{
-        console.log("database is connected succ");
+        console.log("database is connected succussfully");
     }).catch((error)=>{
         console.log("failed to connect database" + error);
     })

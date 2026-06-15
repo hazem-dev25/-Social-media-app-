@@ -11,6 +11,8 @@ import { commentRouter } from "./modules/comments/comments.controller";
 import { postRouter } from "./modules/posts/post.controller";
 import { createHandler } from "graphql-http/lib/use/express";
 import { schema } from "./modules/GraphQl";
+import { Server, Socket } from "socket.io";
+import chatSocket from "./common/service/socket.io/socket.io";
 
 export const boostrap = async () => {
   const app: Express = express();
@@ -29,10 +31,22 @@ export const boostrap = async () => {
 
   app.use("/qraphql", createHandler({ schema: schema }));
 
-  app.listen(port, () => {
+  const httpServer = app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
   });
 
   await connectionRedis();
   await connectDB();
+
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+    },
+  });
+
+  
+
+  const chatService = new chatSocket(io);
+ 
+
 };
