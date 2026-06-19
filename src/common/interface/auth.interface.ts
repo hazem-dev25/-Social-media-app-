@@ -12,6 +12,8 @@ export interface iAuth {
     _id: Types.ObjectId 
     view_profile: number
     Reactions: string
+    messages: Types.ObjectId
+    roomsID: Types.ObjectId
 }
 
 export interface Aichat {

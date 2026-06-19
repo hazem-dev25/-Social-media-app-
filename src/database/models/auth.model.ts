@@ -54,7 +54,15 @@ const authSchema =  new mongoose.Schema<iAuth>({
     view_profile: {
         type: Number ,
         default: 0
-    } 
+    } ,
+    roomsID:[{
+        type: mongoose.Schema.Types.ObjectId ,
+        ref: 'Room'
+    }] ,
+    messages: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Messages'
+    }]
 } , {
     timestamps: true
 }) 

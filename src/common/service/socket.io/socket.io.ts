@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import { Server } from "socket.io";
-import { room } from "./socket.io.service";
+import { socketLogic } from "./socket.io.service";
 import { BadRequestException } from "../../exception/application.exception";
 
 class chatSocket {
@@ -9,12 +9,12 @@ class chatSocket {
 
   constructor(io: Server) {
     this.io = io;
-    this.createRoom = room;
+    this.createRoom = socketLogic;
     this.createChatRoom();
   }
 
   async createChatRoom() {
-    let user = new Map()
+    let user = new Map();
 
     this.io.on("connection", async (socket) => {
       console.log(`Connected: ${socket.id}`);
@@ -61,46 +61,59 @@ class chatSocket {
           );
         }
 
-        try {
-          const roomId = await room.createRoom(data, currentUserId, recevedID);
-          const RoomId = roomId.toString();
+        const roomId = await socketLogic.createRoom(
+          data,
+          currentUserId,
+          recevedID,
+        );
+        const RoomId = roomId.toString();
 
-          socket.join(RoomId);
-          console.log(`Room joined: ${RoomId}`);
+        socket.join(RoomId);
+        console.log(`Room joined: ${RoomId}`);
 
-          if (user.has(recevedID)) {
-            const Sockets = user.get(recevedID) 
-            Sockets.forEach((SocketId: any) => {
-              const Socket = this.io.sockets.sockets.get(SocketId);
-              if (Socket) {
-                Socket.join(RoomId);
-                Socket.emit("room_created", { roomId: RoomId });
-              }
-            });
-          }
-
-          socket.emit("room_created", { roomId: RoomId });
-        } catch (error: any) {
-          socket.emit("error_message", "Failed to handle room");
+        if (user.has(recevedID)) {
+          const Sockets = user.get(recevedID);
+          Sockets.forEach((SocketId: any) => {
+            const Socket = this.io.sockets.sockets.get(SocketId);
+            if (Socket) {
+              Socket.join(RoomId);
+              Socket.emit("room_created", { roomId: RoomId });
+            }
+          });
         }
+
+        socket.emit("room_created", { roomId: RoomId });
       });
 
-      socket.on("send_message", (data) => {
-        const { roomId, message } = data;
+      socket.on("send_message", async(data :any) => {
+        const { RoomId, message   , targetUserId} = data;
 
-        if (!roomId || !message) {
+        if (!RoomId || !message) {
           return new BadRequestException("failed to send message");
         }
 
-        socket.to(roomId.toString()).emit("chat message", {
+        socket.to(RoomId.toString()).emit("chat message", {
           user: currentUserId,
           message: message,
         });
+
+        let sendmessage = await socketLogic.message({RoomId , message} , currentUserId , targetUserId)
+        
       });
 
       socket.on("disconnect", () => {
         console.log(`Disconnected: ${socket.id}`);
-        user.delete(currentUserId);
+        if (user.has(currentUserId)) {
+          const filteredSockets = user
+            .get(currentUserId)
+            .filter((id: string) => id !== socket.id);
+
+          if (filteredSockets.length > 0) {
+            user.set(currentUserId, filteredSockets);
+          } else {
+            user.delete(currentUserId);
+          }
+        }
       });
     });
   }

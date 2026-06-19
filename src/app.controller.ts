@@ -13,6 +13,7 @@ import { createHandler } from "graphql-http/lib/use/express";
 import { schema } from "./modules/GraphQl";
 import { Server, Socket } from "socket.io";
 import chatSocket from "./common/service/socket.io/socket.io";
+import {socketRouter} from './modules/socket.io/socket.io.controller'
 
 export const boostrap = async () => {
   const app: Express = express();
@@ -28,6 +29,7 @@ export const boostrap = async () => {
   app.use(postRouter);
   app.use(commentRouter);
   app.use(globalErrorHandler);
+  app.use(socketRouter)
 
   app.use("/qraphql", createHandler({ schema: schema }));
 
