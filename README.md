@@ -1,419 +1,191 @@
-# AI-Powered Social Media Backend
+# AI Chat-Driven Social Media Backend
 
-A production-minded TypeScript backend for a social media platform with authentication, user profiles, posts, comments, GraphQL user operations, Redis-backed token handling, Firebase notifications, Socket.IO events, file uploads, email workflows, and a standout multimodal AI chat experience.
+A polished TypeScript backend built for a modern social network, designed to showcase a robust AI chat engine alongside production-ready features such as authentication, realtime messaging, Redis token management, GraphQL, and media handling.
 
-The main highlight of this project is the AI chat module: it does more than answer text prompts. It detects whether a user wants normal chat, image generation, video generation, or speech output, then routes the request to the right AI workflow and stores the complete result in MongoDB.
+## What This Project Delivers
 
-## Project Highlights
+- A scalable backend foundation for social experiences
+- Secure account and profile management
+- Post and comment workflows with media attachments
+- Realtime Socket.IO room-based chat
+- AI-powered multimodal assistant routing user prompts to text, image, video, or speech flows
+- Fast static delivery for generated assets
 
-- AI chat assistant powered by Groq chat completions.
-- Prompt intent classification for `text`, `image`, `video`, and `speech`.
-- Image generation through Hugging Face FLUX.1-schnell.
-- Text-to-speech generation through Groq speech models.
-- Text-to-video generation through Bytez.
-- AI chat memory saved in MongoDB with prompt, message, media URL, status, and timestamps.
-- JWT authentication with access tokens, refresh tokens, and role-based signing.
-- Redis integration for token revocation and user profile caching.
-- Email flows for welcome email, verification, forget password, and reset password events.
-- Social user profiles with image upload support.
-- Posts with attachments, tags, visibility controls, and friend-aware fetching.
-- Comments with mentions and emoji support.
-- Firebase Cloud Messaging notification support.
-- GraphQL endpoint for user query and mutation operations.
-- Socket.IO connection layer for realtime communication experiments.
-- Centralized success and error response handling.
-- Zod validation middleware for safer request payloads.
-- Generic database repository pattern over Mongoose models.
+## Why It Stands Out
 
-## Tech Stack
+This project is centered on an AI chat experience that does more than answer questions. It detects intent, routes requests into the right media workflow, and stores context in MongoDB. The result is a backend that treats AI as a first-class feature rather than an add-on.
 
-| Layer | Technology |
-| --- | --- |
-| Runtime | Node.js |
-| Language | TypeScript |
-| API Framework | Express |
-| Database | MongoDB |
-| ODM | Mongoose |
-| Validation | Zod |
-| Authentication | JWT, bcrypt |
-| Cache / Revocation | Redis |
-| Realtime | Socket.IO |
-| GraphQL | graphql, graphql-http |
-| File Uploads | Multer |
-| Email | Nodemailer |
-| Notifications | Firebase Admin SDK |
-| AI Chat | Groq SDK |
-| Image Generation | Hugging Face Inference API |
-| Video Generation | Bytez |
+## Core Capabilities
 
-## AI Chat Feature
+- Sign-up, login, email verification, and session management
+- JWT access + refresh token lifecycle with Redis revocation
+- Profile creation and shareable profile URLs
+- Post creation with attachments and visibility control
+- Comment creation, update, retrieval, and deletion
+- Socket.IO chat rooms with authenticated handshake
+- AI chat prompt handling for text, image, video, and speech
+- Express + GraphQL API support
+- Media upload and static asset serving
+- Firebase Cloud Messaging notification support
 
-The AI chat module is the core showcase feature of this project.
+## AI Chat Highlights
 
-### How It Works
+The AI chat module is the project’s strongest narrative:
 
-1. The user sends a prompt to `POST /AiChatModel`.
-2. The route is protected by authentication middleware.
-3. The service sends the prompt to a Groq-powered intent classifier.
-4. The classifier returns structured JSON:
+- Single endpoint: `POST /AiChatModel`
+- Authenticated user prompt processing
+- Intent classification for `text`, `image`, `video`, and `speech`
+- Dynamic workflow selection per prompt type
+- Media generation with external APIs and asset persistence
+- Conversation state persisted to MongoDB
 
-```json
-{
-  "type": "image | video | speech | text",
-  "content": "cleaned prompt content"
-}
-```
-
-5. The backend chooses the right workflow:
-
-| Intent | Backend Action |
-| --- | --- |
-| `text` | Generates a short conversational AI response through Groq. |
-| `image` | Calls Hugging Face FLUX.1-schnell, saves the generated image under `public/images`, and returns a media URL. |
-| `video` | Calls the Bytez text-to-video model and stores the returned media URL. |
-| `speech` | Calls Groq text-to-speech, saves a `.wav` file under `public/audio`, and returns a media URL. |
-
-6. The assistant response is generated with conversation context.
-7. The chat result is saved to MongoDB through the `AiModel` schema.
-
-### AI Chat Data Saved
-
-Each AI interaction stores:
-
-- `prompt`: original user prompt.
-- `message`: assistant response.
-- `media`: generated image, video, or audio URL when available.
-- `status`: detected intent type.
-- `createdAt` and `updatedAt`: automatic timestamps.
-
-### Example Request
-
-```http
-POST /AiChatModel
-Authorization: Bearer <access_token>
-Content-Type: application/json
-```
-
-```json
-{
-  "prompt": "Generate an image of a futuristic social media dashboard"
-}
-```
-
-### Example Response Shape
-
-```json
-{
-  "success": true,
-  "message": "AI chat is running",
-  "data": {
-    "prompt": "Generate an image of a futuristic social media dashboard",
-    "message": "Done. That dashboard looks clean.",
-    "media": "http://localhost:3000/public/images/image-USER_ID.png",
-    "status": "image"
-  }
-}
-```
-
-## Project Structure
+## Architecture Overview
 
 ```text
 src/
-  app.controller.ts              # Express app bootstrap, routes, GraphQL, Socket.IO
-  main.ts                        # Application entry point
+  app.controller.ts        # Express app bootstrap, GraphQL and Socket.IO integration
+  main.ts                  # Application entry point
   common/
-    ai-orchestrator/             # AI experiment/orchestration code
-    enums/                       # Shared enums
-    exception/                   # Custom exceptions and success responses
-    interface/                   # Shared TypeScript interfaces
-    middelware/                  # Auth, validation, error, and upload middleware
-    security/                    # JWT generation and verification
-    service/                     # Redis and Firebase services
-    utils/SendEmail/             # Email service and email events
+    ai-orchestrator/       # AI orchestration and prompt routing
+    exception/             # Custom error and success response helpers
+    interface/             # Shared TypeScript interfaces
+    middelware/            # Auth, validation, upload middleware
+    security/              # JWT helpers
+    service/               # Redis, Firebase, and Socket services
+    utils/SendEmail/       # Email workflows and templates
   config/
-    env.service.ts               # Environment variable loader
+    env.service.ts         # Environment loader
   database/
-    connection.ts                # MongoDB connection
-    models/                      # Mongoose schemas
-    repository/                  # Generic database repository
+    connection.ts          # MongoDB connection setup
+    models/                # Mongoose schemas
+    repository/            # Generic repository layer
   modules/
-    AI_chat/                     # Multimodal AI chat controller and service
-    auth/                        # Signup, login, verification, tokens, profile views
-    comments/                    # Comment CRUD
-    gql/                         # GraphQL user schema, args, types, resolvers
-    posts/                       # Post CRUD and visibility logic
-    users/                       # Social profile, profile URLs, notifications
-    GraphQl.ts                   # GraphQL schema composition
+    AI_chat/               # AI chat controller/service
+    auth/                  # Authentication controller/service
+    comments/              # Comment controller/service
+    gql/                   # GraphQL schema and resolvers
+    posts/                 # Post controller/service
+    socket.io/             # REST socket helpers and service logic
+    users/                 # User profile controller/service
 ```
 
-## API Overview
+## Tech Stack
 
-### Authentication
+- Node.js + TypeScript
+- Express
+- MongoDB / Mongoose
+- Redis
+- Socket.IO
+- GraphQL
+- Zod
+- JWT
+- Multer
+- Nodemailer
+- Firebase Admin SDK
+- Groq SDK
+- Hugging Face / Bytez integration
 
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/signup` | No | Create an auth account and trigger welcome/verification email flow. |
-| `POST` | `/verify_email` | No | Verify user email with code flow. |
-| `POST` | `/login` | No | Login and receive access and refresh tokens. |
-| `POST` | `/forgetPassword` | Yes | Trigger forget-password email flow. |
-| `PATCH` | `/resetPassword` | Yes | Reset password using email, password, and code. |
-| `GET` | `/get_all_users` | No | Return all auth users without passwords. |
-| `GET` | `/get_user_by_id` | Yes | Return the authenticated user. |
-| `PATCH` | `/update_user_by_id` | Yes | Update authenticated user data. |
-| `DELETE` | `/delete_user_by_id` | Yes | Delete authenticated user. |
-| `POST` | `/refresh_token` | No | Generate a new access token from a refresh token. |
-| `POST` | `/revokeToken` | Yes | Store revoked token state in Redis. |
-| `POST` | `/view_profile` | Yes | Increment and return profile view data. |
-
-### Users
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `GET` | `/get_user_profile` | Yes | Fetch user profile with Redis caching support. |
-| `POST` | `/create_user` | Yes | Create social profile with optional profile image upload. |
-| `GET` | `/create_profile_url/:username` | No | Generate a shareable profile URL. |
-| `POST` | `/send_notification/:userid` | Yes | Save an FCM token and send a Firebase notification. |
-
-### Posts
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/createPost` | Yes | Create a post with content, tags, visibility, and up to 5 attachments. |
-| `GET` | `/getPosts/:userid` | Yes | Fetch posts based on ownership, friends, tags, and visibility. |
-| `PATCH` | `/updatePost/:id` | Yes | Update a post. |
-| `DELETE` | `/deletePost/:id` | Yes | Delete a post. |
-
-Post visibility supports:
-
-- `public`
-- `private`
-- `friends`
-
-### Comments
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/addComments` | Yes | Add a comment to a post. |
-| `GET` | `/getAllComments` | No | Return all comments. |
-| `GET` | `/getCommentsbyPost/:id` | No | Return a comment populated with its post. |
-| `PATCH` | `/updateComment/:id` | Yes | Update a comment. |
-| `DELETE` | `/deleteComment/:id` | Yes | Delete a comment. |
-
-### AI Chat
-
-| Method | Endpoint | Auth | Description |
-| --- | --- | --- | --- |
-| `POST` | `/AiChatModel` | Yes | Run the multimodal AI chat workflow. |
-
-### GraphQL
-
-GraphQL is mounted at:
-
-```text
-/qraphql
-```
-
-Available operations include:
-
-- `getAllUsers`
-- `getUserById`
-- `updateUser`
-- `deleteUser`
-
-### Static Media
-
-Generated and uploaded media can be served from:
-
-```text
-/public/images
-/public/audio
-```
-
-## Database Models
-
-### Auth
-
-Stores account-level data:
-
-- name
-- age
-- email
-- password hash
-- gender
-- role
-- provider
-- verification status
-- profile view count
-- timestamps
-
-### User
-
-Stores social profile data:
-
-- auth user reference
-- username
-- age
-- image
-- about
-- notification tokens
-- friends
-- timestamps
-
-### Post
-
-Stores social posts:
-
-- user reference
-- attachments
-- content
-- tags
-- likes
-- visibility
-- timestamps
-
-### Comment
-
-Stores post comments:
-
-- user reference
-- post reference
-- text
-- mention
-- emoji
-
-### AI Chat
-
-Stores AI conversations:
-
-- prompt
-- message
-- media
-- status
-- timestamps
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js 18+
-- npm
-- MongoDB connection string
-- Redis connection string
-- Groq API key
-- Hugging Face API token
-- Bytez API key
-- Gmail or SMTP app credentials for Nodemailer
-- Firebase Admin SDK service account JSON for notifications
-
-### Installation
+## Installation
 
 ```bash
 npm install
 ```
 
-### Environment Files
+## Environment Setup
 
-The project loads environment variables from:
+Create `.env.dev` or `.env.prod` and configure:
 
-```text
-.env.dev
-.env.prod
-```
+- `DB_URL`
+- `PORT`
+- `MODE`
+- `ADMIN_JWT`
+- `USER_JWT`
+- `REFRESH_ADMIN_JWT`
+- `REFRESH_USER_JWT`
+- `APP_EMAIL`
+- `APP_PASSWORD`
+- `AI_API`
+- `GROQ_API`
+- `IMAGE_API`
+- `REDIS_URL`
+- `HF_TOKEN`
 
-The selected file depends on `NODE_ENV`.
+> Firebase credentials are required for push notification support.
 
-Create the environment file you need using this shape:
-
-```env
-PORT=3000
-MODE=dev
-DB_URL=mongodb+srv://...
-
-USER_JWT=your_user_access_secret
-ADMIN_JWT=your_admin_access_secret
-REFRESH_USER_JWT=your_user_refresh_secret
-REFRESH_ADMIN_JWT=your_admin_refresh_secret
-
-APP_EMAIL=your_email@example.com
-APP_PASSWORD=your_email_app_password
-
-GROQ_API=your_groq_api_key
-HF_TOKEN=your_huggingface_token
-IMAGE_API=your_bytez_api_key
-AI_API=optional_ai_key
-
-REDIS_URL=redis://localhost:6379
-```
-
-Keep `.env.*`, Firebase service account JSON files, uploads, generated media, `node_modules`, and `dist` out of Git.
-
-### Run In Development
+## Run
 
 ```bash
 npm run start:dev
 ```
 
-### Run In Production Mode
+## API Summary
 
-```bash
-npm run start:prod
-```
+### Authentication
 
-Both scripts compile TypeScript in watch mode and run the compiled output from `dist/main.js`.
+- `POST /signup` — Create user account
+- `POST /verify_email` — Confirm email address
+- `POST /login` — Authenticate and retrieve access/refresh tokens
+- `POST /forgetPassword` — Send password reset email
+- `PATCH /resetPassword` — Reset password
+- `GET /get_all_users` — List users
+- `GET /get_user_by_id` — Get authenticated profile
+- `PATCH /update_user_by_id` — Update profile
+- `DELETE /delete_user_by_id` — Delete account
+- `POST /refresh_token` — Refresh access token
+- `POST /revokeToken` — Revoke session token
+- `POST /view_profile` — Track profile views
 
-## Authentication Flow
+### User Profile
 
-1. User signs up through `/signup`.
-2. Password is hashed with bcrypt before saving.
-3. Email event is triggered after account creation.
-4. User logs in through `/login`.
-5. Backend returns an access token and refresh token.
-6. Protected routes read `Authorization: Bearer <token>`.
-7. Refresh tokens can generate new access tokens through `/refresh_token`.
-8. Revoked tokens are tracked through Redis.
+- `GET /get_user_profile` — Get profile data
+- `POST /create_user` — Create/update profile with optional image upload
+- `GET /create_profile_url/:username` — Generate public profile link
+- `POST /send_notification/:userid` — Send Firebase notification
 
-## File Upload Flow
+### Posts
 
-- Profile images are uploaded through `/create_user`.
-- Post attachments are uploaded through `/createPost`.
-- Post uploads support up to 5 files using the `attachment` field.
-- Generated AI images are written to `public/images`.
-- Generated AI speech files are written to `public/audio`.
+- `POST /createPost` — Create a post with attachments
+- `GET /getPosts/:userid` — Retrieve posts
+- `PATCH /updatePost/:id` — Update post
+- `DELETE /deletePost/:id` — Delete post
 
-## Realtime Layer
+### Comments
 
-The server initializes Socket.IO after the HTTP server starts. It currently listens for:
+- `POST /addComments` — Add a comment
+- `GET /getAllComments` — Retrieve all comments
+- `GET /getCommentsbyPost/:id` — Comments for a post
+- `PATCH /updateComment/:id` — Update comment
+- `DELETE /deleteComment/:id` — Delete comment
 
-- `connection`
-- `hi`
-- `disconnect`
+### AI Chat
 
-This provides a base for realtime chat, notifications, typing indicators, or live social updates.
+- `POST /AiChatModel` — Authenticated endpoint for intelligent prompt handling
 
-## Error And Response Handling
+### Socket.IO
 
-The project uses:
+- Authenticated socket handshake via `socket.handshake.auth.token`
+- `room` event — Create/join chat room
+- `send_message` event — Broadcast room chat
 
-- `SuccessResponse` for consistent successful API responses.
-- Custom exception classes for bad requests, unauthorized access, and not-found cases.
-- A global error middleware mounted after the routers.
+REST socket helpers:
 
-## LinkedIn Project Summary
+- `GET /get_room_id/:id`
+- `GET /get_messages/:id`
 
-Built a TypeScript social media backend with a multimodal AI chat system as the main feature. The backend supports secure JWT auth, Redis token revocation, MongoDB data models, file uploads, posts, comments, GraphQL user operations, Firebase notifications, Socket.IO realtime events, and email workflows.
+### GraphQL
 
-The AI chat system classifies each prompt into text, image, video, or speech intent, then routes it to the correct AI provider using Groq, Hugging Face, and Bytez. Each AI result is saved with conversation history, response text, generated media URL, and intent status.
+- `POST /qraphql` — GraphQL entrypoint
 
-## Future Improvements
+## Assets
 
-- Add automated unit and integration tests.
-- Add OpenAPI or Swagger documentation.
-- Add pagination for posts, comments, and users.
-- Move generated media URL host into environment configuration.
-- Add stricter authorization checks for post and comment ownership.
-- Add Docker Compose for MongoDB, Redis, and the API.
-- Add CI checks for TypeScript compilation and linting.
+- `public/images` — Generated image assets
+- `public/audio` — Generated audio assets
 
-## Author
+## Why This Project Works
 
-Developed as a full backend project focused on practical social media features and a strong AI chat experience suitable for GitHub portfolio presentation and LinkedIn showcasing.
+It pairs real-world social platform requirements with an AI-first backend design. The architecture is production-aware, the APIs are intuitive, and the AI chat workflow is built to serve as the platform’s flagship capability.
+
+## License
+
+ISC
+
